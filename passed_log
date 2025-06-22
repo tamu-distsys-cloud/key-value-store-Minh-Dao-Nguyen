@@ -1,0 +1,215 @@
+Test: one client ...
+
+Iteration 0
+Client 0
+spawn_clients_and_wait: waiting for clients
+labgob warning: Decoding into a non-default variable/field key may not work
+spawn_clients_and_wait: client 0 is done
+Iteration 1
+Client 0
+spawn_clients_and_wait: waiting for clients
+spawn_clients_and_wait: client 0 is done
+Iteration 2
+Client 0
+spawn_clients_and_wait: waiting for clients
+spawn_clients_and_wait: client 0 is done
+info: linearizability check timed out, assuming history is ok
+  ... Passed --
+ t 10.194294929504395 nrpc 22251 ops 22251
+
+.Test: many clients ...
+
+Iteration 0
+Client 0
+Client 1
+spawn_clients_and_wait: waiting for clients
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 1
+Client 0
+Client 1
+Client 2
+Client 3
+spawn_clients_and_wait: waiting for clients
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 2
+Client 0
+Client 1
+Client 2
+Client 3
+spawn_clients_and_wait: waiting for clients
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+  ... Passed --
+ t 4.442720890045166 nrpc 22266 ops 22266
+
+.Test: rejection ...
+Exception in thread Thread-89116 (dispatch):
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+Exception in thread Thread-89125 (dispatch):
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+Exception in thread Thread-89134 (dispatch):
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1010, in run
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1010, in run
+  File "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 123, in dispatch
+    self._target(*self._args, **self._kwargs)
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 123, in dispatch
+    self._target(*self._args, **self._kwargs)
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 123, in dispatch
+    r = server.dispatch(req)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 220, in dispatch
+    r = server.dispatch(req)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 220, in dispatch
+    return service.dispatch(method_name, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 250, in dispatch
+    return service.dispatch(method_name, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 250, in dispatch
+    r = server.dispatch(req)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 220, in dispatch
+    replyv = method(args)
+             ^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/server.py", line 118, in Get
+    return service.dispatch(method_name, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/labrpc/labrpc.py", line 250, in dispatch
+    raise KeyError("WRONG_SHARD")
+KeyError: 'WRONG_SHARD'
+    replyv = method(args)
+             ^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/server.py", line 118, in Get
+    raise KeyError("WRONG_SHARD")
+KeyError: 'WRONG_SHARD'
+    replyv = method(args)
+             ^^^^^^^^^^^^
+  File "/Users/minhdaonguyen/Documents/Github/CSCE_678/key-value-store-Minh-Dao-Nguyen/server.py", line 118, in Get
+    raise KeyError("WRONG_SHARD")
+KeyError: 'WRONG_SHARD'
+  ... Passed
+.  ... Passed
+.Test: unreliable net, many clients ...
+
+Iteration 0
+Client 0
+Client 1
+spawn_clients_and_wait: waiting for clients
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 1
+Client 0
+spawn_clients_and_wait: waiting for clients
+Client 1
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 2
+Client 0
+Client 1
+Client 2
+Client 4
+spawn_clients_and_wait: waiting for clients
+Client 3
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+  ... Passed --
+ t 3.8926501274108887 nrpc 765 ops 613
+
+.Test: concurrent append to same key, unreliable ...
+
+spawn_clients_and_wait: waiting for clients
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+  ... Passed --
+ t 0.3053109645843506 nrpc 61 ops 52
+
+.Test: unreliable net, sharded, many clients ...
+
+Iteration 0
+spawn_clients_and_wait: waiting for clients
+Client 0
+Client 1
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 1
+spawn_clients_and_wait: waiting for clients
+Client 0
+Client 1
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+Iteration 2
+spawn_clients_and_wait: waiting for clients
+Client 0
+Client 1
+Client 2
+Client 3
+Client 4
+spawn_clients_and_wait: client 0 is done
+spawn_clients_and_wait: client 1 is done
+spawn_clients_and_wait: client 2 is done
+spawn_clients_and_wait: client 3 is done
+spawn_clients_and_wait: client 4 is done
+  ... Passed --
+ t 3.3362109661102295 nrpc 943 ops 764
+
+.
+----------------------------------------------------------------------
+Ran 7 tests in 26.411s
+
+OK

@@ -7,7 +7,7 @@ from server import GetArgs, GetReply, PutAppendArgs, PutAppendReply, WrongShardE
 
 def nrand() -> int:
     return random.getrandbits(62)
-MAX_TRIES = 10
+MAX_TRIES = 10000
 class Clerk:
     def __init__(self, servers: List[ClientEnd], cfg):
         self.servers = servers
@@ -16,32 +16,26 @@ class Clerk:
         # Your definitions here.
         self.num = nrand()
         self.req_count = 0
-        self.replication = cfg.nreplicas
         #print(len(servers))
 
     def get(self, key: str) -> str:
-        self.req_count += 1
+        #self.req_count += 1
         #shard = int(key) % self.cfg.nservers
         shard = sum([ord(c) for c in key]) % self.cfg.nservers
         servers = [(shard + i) % self.cfg.nservers for i in range(self.cfg.nreplicas)]
         args = GetArgs(key, self.num, self.req_count)
 
         for i in range(MAX_TRIES):
-            #for j in self.servers:
-            for idx in servers:
-                try:
-                    #reply = j.call("KVServer.Get", args)
-                    reply = self.servers[idx].call("KVServer.Get", args)
-                    if reply.value == "WRONG_SHARD":
+            try:
+                for idx in servers:
+                    try:
+                        reply = self.servers[idx].call("KVServer.Get", args)
+                        return reply.value
+                    except:
                         continue
-                    return reply.value
-                except KeyError :
-                    continue
-                except:
-                    continue
+            except:
+                continue
             time.sleep(0.05) # for some reason this is needed or it return wrong value
-
-        return ""
 
     def put_append(self, key: str, value: str, op: str) -> str:
         self.req_count += 1
@@ -51,21 +45,13 @@ class Clerk:
         args = PutAppendArgs(key, value, self.num, self.req_count)
 
         for i in range(MAX_TRIES):
-            #for j in self.servers:
-            for idx in servers:
-                try:
-                    #reply = j.call("KVServer." + op, args)
+            try:
+                for idx in servers:
                     reply = self.servers[idx].call("KVServer." + op, args)
-                    if reply.value == "WRONG_SHARD":
-                        continue
                     return reply.value
-                except KeyError:
-                    continue
-                except:
-                    continue
+            except:
+                continue
             time.sleep(0.05)
-
-        return ""
 
 
     # Fetch the current value for a key.

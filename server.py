@@ -50,32 +50,71 @@ class KVServer:
         self.map_data = {}
         self.req_data = {}
 
-        self.nshards = cfg.nservers
-        self.replication = cfg.nreplicas
+        #self.nshards = cfg.nservers
+        #self.replication = cfg.nreplicas
+        self.index = 0
 
     def is_responsible(self, key: str) -> bool:
-        shard = sum([ord(c) for c in key]) % self.nshards
-        group = [(shard + i) % self.nshards for i in range(self.replication)]
+        shard = sum([ord(c) for c in key]) % self.cfg.nservers
+        group = [(shard + i) % self.cfg.nservers for i in range(self.cfg.nreplicas)]
         return self in [self.cfg.kvservers[i] for i in group]
 
     def is_leader(self, key: str) -> bool:
-        shard = sum([ord(c) for c in key]) % self.nshards
+        shard = sum([ord(c) for c in key]) % self.cfg.nservers
         return self is self.cfg.kvservers[shard]
 
+    # def replicate(self, method: str, args):
+    #     shard = sum([ord(c) for c in args.key]) % self.nshards
+    #     # for i in range(1, self.replication):
+    #     #     sid = (shard + i) % self.nshards
+    #     #     try:
+    #     #         self.cfg.kvservers[sid].call("KVServer." + method, args)
+    #     #     except:
+    #     #         continue
+    #     for i in range(1, self.replication):  # skip self (i = 0)
+    #         sid = (shard + i) % self.nshards
+    #         try:
+    #             self.cfg.kvservers[sid].call("KVServer." + method, args)
+    #         except:
+    #             continue
+
+    # def replicate(self, method: str, args):
+    #     shard = sum([ord(c) for c in args.key]) % self.nshards
+    #     for i in range(1, self.replication):  # skip the leader (i=0)
+    #         sid = (shard + i) % self.nshards
+    #         server = self.cfg.kvservers[sid]
+    #
+    #         with server.mu:
+    #             if method == "Put":
+    #                 server.map_data[args.key] = args.value
+    #                 server.req_data[args.client_num] = (args.req_count, PutAppendReply(None))
+    #             elif method == "Append":
+    #                 old_val = server.map_data.get(args.key, "")
+    #                 server.map_data[args.key] = old_val + args.value
+    #                 server.req_data[args.client_num] = (args.req_count, PutAppendReply(old_val))
+
     def replicate(self, method: str, args):
-        shard = sum([ord(c) for c in args.key]) % self.nshards
-        for i in range(1, self.replication):
-            sid = (shard + i) % self.nshards
-            try:
-                self.cfg.kvservers[sid].call("KVServer." + method, args)
-            except:
-                continue
+        shard = sum([ord(c) for c in args.key]) % self.cfg.nservers
+        for i, server in enumerate(self.cfg.kvservers):
+            if server is self:
+                self.index = i
+        for i in range(1, self.cfg.nreplicas): #( R - 1)
+            sid = (shard + i) % self.cfg.nservers
+            #print("index:", self.index, "shard:", shard, "replica:", self.cfg.nreplicas, "sid:", sid)
+            replica = self.cfg.kvservers[sid]
+
+            with replica.mu:
+                #print("replicate")
+                if method == "Put":
+                    replica.map_data[args.key] = args.value
+                    replica.req_data[args.client_num] = (args.req_count, PutAppendReply(None))
+                elif method == "Append":
+                    old_val = replica.map_data.get(args.key, "")
+                    replica.map_data[args.key] = old_val + args.value
+                    replica.req_data[args.client_num] = (args.req_count, PutAppendReply(old_val))
 
     def Get(self, args: GetArgs):
         if not self.is_responsible(args.key):
-            #return GetReply("WRONG_SHARD")
-            #raise Exception("WRONG_SHARD")
-            #raise WrongShardException("WRONG_SHARD")
             raise KeyError("WRONG_SHARD")
 
         reply = GetReply(None)
@@ -85,9 +124,6 @@ class KVServer:
 
     def Put(self, args: PutAppendArgs):
         if not self.is_responsible(args.key):
-            #return PutAppendReply("WRONG_SHARD")
-            #raise Exception("WRONG_SHARD")
-            #raise WrongShardException("WRONG_SHARD")
             raise KeyError("WRONG_SHARD")
 
         reply = PutAppendReply(None)
@@ -99,19 +135,17 @@ class KVServer:
                 elif last_req > args.req_count:
                     return reply
 
-            if self.is_leader(args.key):
-                self.map_data[args.key] = args.value
-                self.req_data[args.client_num] = (args.req_count, reply)
-                self.replicate("Put", args)
+            # if not self.is_leader(args.key):
+            #     return reply  # Drop silently — replicas shouldn't write
+
+            self.map_data[args.key] = args.value
+            self.req_data[args.client_num] = (args.req_count, reply)
+            self.replicate("Put", args)
 
             return reply
-
 
     def Append(self, args: PutAppendArgs):
         if not self.is_responsible(args.key):
-            #return PutAppendReply("WRONG_SHARD")
-            #raise Exception("WRONG_SHARD")
-            #raise WrongShardException("WRONG_SHARD")
             raise KeyError("WRONG_SHARD")
 
         reply = PutAppendReply(None)
@@ -123,15 +157,16 @@ class KVServer:
                 elif last_req > args.req_count:
                     return reply
 
-            if self.is_leader(args.key):
-                old_val = self.map_data.get(args.key, "")
-                self.map_data[args.key] = old_val + args.value
-                reply.value = old_val
-                self.req_data[args.client_num] = (args.req_count, reply)
-                self.replicate("Append", args)
+            # if not self.is_leader(args.key):
+            #     return reply  # Drop silently — replicas shouldn't write
+
+            old_val = self.map_data.get(args.key, "")
+            self.map_data[args.key] = old_val + args.value
+            reply.value = old_val
+            self.req_data[args.client_num] = (args.req_count, reply)
+            self.replicate("Append", args)
 
             return reply
-
 
 # class KVServer:
 #     def __init__(self, cfg):
